@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block page_header %}Create an Account{% endblock %}
+
+{% block content %}
+  <form method="post" action="{{ urls["register_post"] }}">
+    <input type="text" placeholder="Username" name="username" required>
+    <input type="email" placeholder="Email" name="email" required>
+    <input type="password" placeholder="Password" name="password1" required>
+    <input type="password" placeholder="Confirm Password" name="password2" required>
+    <button type="submit">Register</button>
+    <p>Already have an account? <a href="{{ urls["login"] }}">Sign in</a></p>
+    <p>Forget password? <a href="{{ urls["recovery"] }}">Recovery</a></p>
+  </form>
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+{% endblock %}

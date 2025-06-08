@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Password Recovery{% endblock %}
+
+{% block page_header %}Recover Your Password{% endblock %}
+
+{% block content %}
+  <form method="post" action="/recovery">
+    <input type="email" placeholder="Email" name="email" required>
+    <button type="submit">Send Recovery Link</button>
+    <p>Remembered your password? <a href="{{ urls["login"] }}">Sign in</a></p>
+    <p>Don't have an account? <a href="{{ urls["register"] }}">Sign up</a></p>
+  </form>
+{% endblock %}

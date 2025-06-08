@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block page_header %}Login{% endblock %}
+
+{% block content %}
+  <form method="post" action="{{ urls["login_post"] }}">
+    <input type="text" placeholder="Username" name="username" required>
+    <input type="password" placeholder="Password" name="password" required>
+    <button type="submit">Sign In</button>
+    <p>Don't have an account? <a href="{{ urls["register"] }}">Sign up</a></p>
+    <p>Forget password? <a href="{{ urls["recovery"] }}">Recovery</a></p>
+  </form>
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+  {% if message %}
+    <p style="color: green;">{{ message }}</p>
+  {% endif %}
+{% endblock %}
