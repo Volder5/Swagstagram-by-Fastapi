@@ -100,3 +100,16 @@ def user_on_verification(username, password, email, token):
         conn.execute(text(stmnt), {"username": username, "email": email,
                      "password": hashed_password, "token": hashed_token})
         conn.commit()
+        
+def check_user_exists(username, email):
+    with engine.connect() as conn:
+        stmnt = """
+            SELECT id FROM users 
+            WHERE username = :username OR email = :email;
+        """
+        result = conn.execute(text(stmnt), {
+            "username": username,
+            "email": email
+        }).fetchone()
+
+    return result is not None
