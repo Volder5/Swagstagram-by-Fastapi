@@ -1,5 +1,5 @@
 import uvicorn
-from app.db.core import create_tables, insert_data, registrate_user, login_func, create_verification_code
+from app.db.core import create_tables, insert_data, registrate_user, login_func
 
 
 if __name__ == "__main__":

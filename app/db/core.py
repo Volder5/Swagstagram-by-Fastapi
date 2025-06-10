@@ -5,6 +5,7 @@ import bcrypt
 import secrets
 import hashlib
 import random
+from datetime import datetime, timedelta
 from app.config.utils import send_email
 
 
@@ -31,8 +32,6 @@ def registrate_user(token):
         
         stmnt = """DELETE FROM users_on_verification WHERE token = :token;"""
         conn.execute(text(stmnt), {"token": hashed_token})
-        stmnt = """DELETE FROM email_verification WHERE token = :token;"""
-        conn.execute(text(stmnt), {"token": hashed_token})
         
         for user in data:
             insert_stmt = """
@@ -47,29 +46,39 @@ def registrate_user(token):
 
         conn.commit()
 
-    return data if data else {"False": False}
+    return data if data else False
 
 
 def login_func(username, input_password):
     with engine.connect() as conn:
         stmnt = """SELECT password FROM users WHERE username = :username"""
-        get_actual_password = conn.execute(
-            text(stmnt), {"username": username}).fetchone()
+        get_actual_password = conn.execute(text(stmnt), {"username": username}).fetchone()
         actual_password = get_actual_password[0]
 
     is_password_passes = bcrypt.checkpw(str(input_password).encode(
         "utf-8"), str(actual_password).encode("utf-8"))
+    
+    return is_password_passes
 
 
-def create_verification_code(email, username):
-    token = secrets.token_urlsafe(32)
-    hashed_token = hashlib.sha256(token.encode()).hexdigest()
-    verification_code = random.randint(100000, 999999)
-
+def start_registration(username, email, password):
+    """
+    Starts registration by inserting data to table 'users_on_verification',
+    creating verification code and token,
+    returns registration token.
+    """
     with engine.connect() as conn:
-        stmnt = """INSERT INTO email_verification (email, token, verification_code) VALUES (:email, :token, :verification_code);"""
-        conn.execute(text(stmnt), {
-                     "email": email, "token": hashed_token, "verification_code": verification_code})
+        
+        token = secrets.token_urlsafe(32)
+        hashed_token = hashlib.sha256(token.encode()).hexdigest()
+        
+        verification_code = random.randint(100000, 999999)
+        
+        hashed_password = bcrypt.hashpw(str(password).encode(
+            "utf-8"), bcrypt.gensalt()).decode("utf-8")
+        
+        stmnt = """INSERT INTO users_on_verification (username, email, password, token, verification_code) VALUES (:username, :email, :password, :token, :verification_code);"""
+        conn.execute(text(stmnt), {"username": username, "email": email, "password": hashed_password, "token": hashed_token, "verification_code": verification_code})
         conn.commit()
 
     email_text = f"Hello dear {username}!\nHere is your verification code: {verification_code}"
@@ -79,10 +88,35 @@ def create_verification_code(email, username):
     return token
 
 
-def check_verification_code(token, input_code):
+def if_code_not_expired_and_exists(token):
+    
     hashed_token = hashlib.sha256(token.encode()).hexdigest()
+    
     with engine.connect() as conn:
-        stmnt = """SELECT verification_code FROM email_verification WHERE token = :token"""
+        stmnt = """SELECT created_at FROM users_on_verification WHERE token = :token"""
+        created_at = conn.execute(
+            text(stmnt), {"token": hashed_token}).fetchone()
+        
+        current_time = datetime.now()
+        five_minutes_ago = current_time - timedelta(minutes=5)
+        
+        
+        if created_at[0] > five_minutes_ago:
+            return True
+        
+        else:
+            stmnt = """DELETE FROM users_on_verification WHERE token = :token;"""
+            conn.execute(text(stmnt), {"token": hashed_token})
+            conn.commit()
+            return True
+        
+
+def check_verification_code(token, input_code):
+    
+    hashed_token = hashlib.sha256(token.encode()).hexdigest()
+    
+    with engine.connect() as conn:
+        stmnt = """SELECT verification_code FROM users_on_verification WHERE token = :token"""
         verification_code = conn.execute(
             text(stmnt), {"token": hashed_token}).fetchone()
         if verification_code[0] == input_code:
@@ -90,16 +124,6 @@ def check_verification_code(token, input_code):
         else:
             return False
 
-
-def user_on_verification(username, password, email, token):
-    with engine.connect() as conn:
-        hashed_token = hashlib.sha256(token.encode()).hexdigest()
-        hashed_password = bcrypt.hashpw(str(password).encode(
-            "utf-8"), bcrypt.gensalt()).decode("utf-8")
-        stmnt = """INSERT INTO users_on_verification (username, email, password, token) VALUES (:username, :email, :password, :token);"""
-        conn.execute(text(stmnt), {"username": username, "email": email,
-                     "password": hashed_password, "token": hashed_token})
-        conn.commit()
         
 def check_user_exists(username, email):
     with engine.connect() as conn:

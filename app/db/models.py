@@ -16,16 +16,6 @@ users = Table(
     Column("profile_pic", String)
 )
 
-email_verificatiton = Table(
-    "email_verification",
-    metadata_obj,
-    Column("id", Integer, primary_key=True),
-    Column("email", String),
-    Column("token", String),
-    Column("verification_code", Integer),
-    Column("created_at", DateTime, server_default=func.now()),
-    
-)
 
 users_on_verification = Table(
     "users_on_verification",
@@ -34,5 +24,7 @@ users_on_verification = Table(
     Column("username", String),
     Column("email", String),
     Column("password", String),
-    Column("token", String)
+    Column("token", String),
+    Column("verification_code", Integer),
+    Column("created_at", DateTime, server_default=func.now()),
 )
