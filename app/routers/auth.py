@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.config.config import URLS
-from app.forms.forms import LoginForm, RegisterForm, VerificationForm
-from app.db.core import registrate_user, check_verification_code, check_user_exists, login_func, start_registration, if_code_not_expired_and_exists
+from app.forms.forms import LoginForm, RegisterForm, VerificationForm, EmailForm, ChangePasswordForm
+from app.db.core import registrate_user, change_password_recovery, check_recovery_token_valid, start_recovery, check_verification_code, check_user_exists, login_func, start_registration, if_code_not_expired_and_exists
 from urllib.parse import urlencode
 
 templates = Jinja2Templates(directory="app/templates/auth")
@@ -69,8 +69,62 @@ async def register_post(request: Request, username: str = Form(...), email: str 
 
 
 @router.get("/recovery", name="recovery", response_class=HTMLResponse)
-async def recovery_page(request: Request, token: str = None):
-    return templates.TemplateResponse("recovery.html", {"request": request, "urls": URLS})
+async def recovery_page(request: Request, token: str = None, message: str = None, error: str = None):
+    if token:
+        if check_recovery_token_valid(token):
+            return templates.TemplateResponse(
+                "change_password_recovery.html",
+                {"request": request, "message": message, "token": token,"error": error, "urls": URLS}
+            )
+        else:
+            return templates.TemplateResponse(
+                "recovery_token_expired.html",
+                {"request": request, "message": message, "token": token,"error": error, "urls": URLS}
+            )
+    return templates.TemplateResponse("recovery.html", {"request": request, "message": message, "error": error, "urls": URLS})
+
+
+@router.post("/recovery_post", name="recovery")
+async def recovery_page(request: Request, email: str = Form(...)):
+    try: 
+        if EmailForm(email=email):
+            try:
+                start_recovery(email)
+            
+                query_params = urlencode({"message": "Recovery link sent to your email"})
+                url = f"{URLS["recovery"]}?{query_params}"
+                return RedirectResponse(url=url, status_code=302)
+            
+            except TypeError:
+                query_params = urlencode({"error": "Thats not any registrated user with this email"})
+                url = f"{URLS["recovery"]}?{query_params}"
+                return RedirectResponse(url=url, status_code=302)
+    
+    except Exception:
+        query_params = urlencode({"error": "Please use valid email!"})
+        url = f"{URLS["recovery"]}?{query_params}"
+        return RedirectResponse(url=url, status_code=302)
+
+
+@router.post("/recovery_change_password_post")
+async def recovery_change_password_post(
+    request: Request,
+    password1: str = Form(...),
+    password2: str = Form(...),
+    token: str = None
+):
+    try:
+        if ChangePasswordForm(password1=password1, password2=password2):
+            if change_password_recovery(token, password1):
+                query_params = urlencode({"message": "Succesful"})
+                url = f"{URLS["login"]}?{query_params}"
+                return RedirectResponse(url=url, status_code=302)
+            
+    
+    except ValueError as e:
+        query_params = urlencode({"token": token, "error": "Passwords doesn't match"})
+        url = f"{URLS["recovery"]}?{query_params}"
+        return RedirectResponse(url=url, status_code=302)
 
 
 @router.get("/verification", name="email_verification", response_class=HTMLResponse)

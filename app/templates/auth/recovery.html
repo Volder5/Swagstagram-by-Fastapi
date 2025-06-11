@@ -5,10 +5,16 @@
 {% block page_header %}Recover Your Password{% endblock %}
 
 {% block content %}
-  <form method="post" action="/recovery">
+  <form method="post" action="{{ urls["recovery_post"] }}">
     <input type="email" placeholder="Email" name="email" required>
     <button type="submit">Send Recovery Link</button>
-    <p>Remembered your password? <a href="{{ urls["login"] }}">Sign in</a></p>
+    <p>Remember your password? <a href="{{ urls["login"] }}">Sign in</a></p>
     <p>Don't have an account? <a href="{{ urls["register"] }}">Sign up</a></p>
   </form>
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+  {% if message %}
+    <p style="color: green;">{{ message }}</p>
+  {% endif %}
 {% endblock %}

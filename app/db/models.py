@@ -28,3 +28,12 @@ users_on_verification = Table(
     Column("verification_code", Integer),
     Column("created_at", DateTime, server_default=func.now()),
 )
+
+recovery = Table(
+    "recovery",
+    metadata_obj,
+    Column("id", Integer, primary_key=True),
+    Column("email", String),
+    Column("token", String),
+    Column("created_at", DateTime, server_default=func.now()),
+)

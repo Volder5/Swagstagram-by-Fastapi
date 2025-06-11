@@ -33,3 +33,15 @@ okay, you need to install python, fuck some maybe with python and make one impor
 
 to have all stack you need
 
+start your project by manage.py file
+
+# IMPORTANT
+
+You need to create all tables in database, so you can create test.py file in main directory and insert there
+
+from app.db.core import create_tables
+create_tables()
+
+Start it once and done
+
+
