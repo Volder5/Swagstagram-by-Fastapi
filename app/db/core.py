@@ -159,7 +159,7 @@ def start_recovery(email):
         username = conn.execute(text(stmnt), {"email": email}).fetchone()
         
         url_token = urlencode({"token": token})
-        url = f"{URLS["recovery"]}?{url_token}"
+        url = f"{URLS['recovery']}?{url_token}"
         link = f"127.0.0.1:8000{url}"
         send_email(email, "Recovery for your Swagstargram Account:", f"Hello dear {username[0]},\n We got recovery request for your account, here is link that you can use {link}")
 
