@@ -48,3 +48,11 @@ Thumbs.db
 
 
 .ipynb_checkpoints/
+
+
+
+test.py
+
+Dockerfile
+
+.dockerignore

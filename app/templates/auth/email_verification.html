@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Email{% endblock %}
+
+{% block page_header %}Verify Your Email{% endblock %}
+
+{% block content %}
+  <form method="post" action="{{ urls["email-verification_post"] }}?token={{ token }}">
+    <input type="text" placeholder="Verification code" name="verification_code" required>
+    <button type="submit">Submit</button>
+    <p>Didn't receive a code? <a href="">Resend Code</a></p>
+  </form>
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+{% endblock %}
+
+{% block footer_links %}
+  <p>Forgot password? <a href="">Recovery</a></p>
+{% endblock %}

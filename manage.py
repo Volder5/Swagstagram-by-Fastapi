@@ -1,4 +1,6 @@
 import uvicorn
+from app.db.core import create_tables, insert_data, registrate_user, login_func
+
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -7,3 +9,4 @@ if __name__ == "__main__":
         port=8000,
         reload=True  # Auto-reload on code changes (great for dev)
     )
+    
